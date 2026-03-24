@@ -5,26 +5,253 @@
 # Description: A lightweight, pure-Bash toolchain for publishing professional PDFs and EPUBs directly from Markdown.
 # Author:      Todd Emerson (todd@toddemerson.com)
 # Created:     2026-03-24
-# Version:     1.1.0
+# Version:     1.2.1
 # License:     BSL 1.1
 #
-# Usage:       ./buildbook.sh <manuscript.md> [format] [options]
+# Usage:       buildbook <manuscript.md> [format] [options]
 # Dependencies: Requires pandoc texlive-xetex texlive-latex-extra texlive-fonts-extra bc (fonts-linuxlibertine)
-#
-#!/usr/bin/env bash
-# ============================================================
-# buildbook - Pure Bash Book Builder with Gutter Validation
 # ============================================================
 set -e
 
-VERSION="1.1.0"
+VERSION="1.2.1"
 
-# --- Default Variables ---
-FORMAT="all"
-MANUSCRIPT=""
-CONFIG_FILE="buildbook.conf"
-METADATA_FILE="metadata.yaml"
-OUTPUT_FILE=""
+# --- Internal Templates (sourced from /assets/init) ---
+# These are used when running 'buildbook --init'
+
+read -r -d '' INIT_METADATA << 'EOF' || true
+---
+# For more information, review example at https://github.com/ToddE/buildbook/blob/main/examples/metadata.yaml
+title: ""
+subtitle: ""
+author: ""
+publisher: ""
+lang: "en-US"
+rights: ""
+# cover-image: "cover.jpg"
+---
+EOF
+
+read -r -d '' INIT_CONF << 'EOF' || true
+# ==========================================
+# buildbook.conf - Layout & Style Config
+# ==========================================
+
+# --- PDF Page Layout ---
+TRIM_SIZE="6x9"
+PAPER_W="6in"
+PAPER_H="9in"
+MARGIN_TOP="0.75in"
+MARGIN_BOT="0.75in"
+MARGIN_LEFT="0.75in"  # Inside margin/gutter
+MARGIN_RIGHT="0.5in"  # Outside margin
+
+# --- Typography ---
+FONT_SIZE="11pt"
+LINE_SPACING="1.15"
+MAIN_FONT="Linux Libertine O"
+MONO_FONT="DejaVu Sans Mono"
+PARAGRAPH_STYLE="block" 
+
+# --- Page Headers & Footers ---
+# \leftmark = Chapter | \rightmark = Section | \thepage = Number
+HEADER_EVEN_LEFT="\thepage"
+HEADER_EVEN_RIGHT="\textit{\leftmark}"
+HEADER_ODD_LEFT="\textit{\rightmark}"
+HEADER_ODD_RIGHT="\thepage"
+HEADER_RULE_WIDTH="0.4pt"
+
+# --- Structural Breaks ---
+PART_BREAK="left"     # Forces Parts to even (left) pages
+CHAPTER_BREAK="right" # Forces Chapters to odd (right) pages
+PART_PAGE_PLAIN="true"
+CHAPTER_PAGE_PLAIN="true"
+
+# --- EPUB Specifics ---
+EPUB_STYLESHEET="style.css"
+EPUB_TOC_DEPTH="2"
+EPUB_SPLIT_LEVEL="2"
+EOF
+
+read -r -d '' INIT_CSS << 'EOF' || true
+/* BuildBook - Unified Stylesheet */
+
+/* Body text */
+body {
+  font-family: Georgia, "Linux Libertine O", serif;
+  line-height: 1.6;
+  margin: 1em;
+}
+
+/* Headings */
+h1 {
+  font-size: 1.8em;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 3em;
+  margin-bottom: 1em;
+  page-break-before: always;
+}
+
+h2 {
+  font-size: 1.4em;
+  font-weight: bold;
+  margin-top: 2em;
+  margin-bottom: 0.8em;
+  page-break-before: always;
+}
+
+h3 {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+/* Chapter epigraph quotes - centered and italic */
+blockquote {
+  text-align: center;
+  font-style: italic;
+  margin: 2em 1.5em;
+  padding: 0;
+  border: none;
+}
+
+blockquote p {
+  margin: 0.3em 0;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.85em;
+  margin: 1em 0;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 0.4em 0.6em;
+  text-align: left;
+}
+
+th {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+/* Images/diagrams */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5em auto;
+}
+
+/* Image captions */
+figcaption {
+  text-align: center;
+  font-size: 0.85em;
+  font-style: italic;
+  color: #666;
+  margin-top: 0.5em;
+}
+
+/* Code blocks */
+code {
+  font-family: "Courier New", monospace;
+  font-size: 0.9em;
+  background-color: #f5f5f5;
+  padding: 0.1em 0.3em;
+}
+
+pre {
+  background-color: #f5f5f5;
+  padding: 1em;
+  overflow-x: auto;
+  font-size: 0.85em;
+  line-height: 1.4;
+}
+
+/* Lists */
+ul, ol {
+  margin: 0.8em 0;
+  padding-left: 2em;
+}
+
+li {
+  margin-bottom: 0.4em;
+}
+
+/* Horizontal rules (section breaks) */
+hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 2em 0;
+}
+
+/* Custom environments */
+.copyright {
+  margin-top: 30%;
+  font-size: 0.85em;
+  text-align: center;
+  page-break-before: always;
+}
+
+.dedication {
+  text-align: center;
+  margin-top: 30%;
+  font-style: italic;
+  page-break-before: always;
+  page-break-after: always;
+}
+EOF
+
+read -r -d '' INIT_MD << 'EOF' || true
+# Introduction
+
+Welcome to your new book. 
+
+::: {.dedication}
+To the dreamers and the builders.
+:::
+
+::: {.copyright}
+Copyright © 2026 by Jane Doe.
+All rights reserved.
+:::
+
+`​`​`{=latex}
+\tableofcontents
+`​`​`
+
+# Chapter 1: The Beginning
+
+This is where your story starts.
+EOF
+
+# --- Initialization Function ---
+init_project() {
+    local target_dir="${1:-.}"
+    
+    if [ "$target_dir" != "." ]; then
+        echo "Creating directory: $target_dir"
+        mkdir -p "$target_dir"
+        cd "$target_dir"
+    fi
+
+    echo "Initializing new BuildBook project..."
+    
+    # Create files only if they don't already exist
+    [ ! -f "metadata.yaml" ] && echo "$INIT_METADATA" > metadata.yaml && echo "  [+] metadata.yaml"
+    [ ! -f "buildbook.conf" ] && echo "$INIT_CONF" > buildbook.conf && echo "  [+] buildbook.conf"
+    [ ! -f "style.css" ] && echo "$INIT_CSS" > style.css && echo "  [+] style.css"
+    [ ! -f "manuscript.md" ] && echo "$INIT_MD" > manuscript.md && echo "  [+] manuscript.md"
+    
+    echo "------------------------------------------------------------"
+    echo "Done! Navigate to your folder and run: buildbook manuscript.md"
+    echo "------------------------------------------------------------"
+    exit 0
+}
 
 # --- Status & Version Check ---
 check_status() {
@@ -33,16 +260,14 @@ check_status() {
     echo "System Dependency Check:"
     local DEPS=("pandoc" "xelatex" "bc" "wget")
     local MISSING=0
-
     for dep in "${DEPS[@]}"; do
-        if command -v "$dep" >/dev/null 2>&1; then
+        if command -v "$dep" >/dev/null 2>&1; then 
             echo "  [OK] $dep is installed"
-        else
+        else 
             echo "  [!!] $dep is MISSING"
             MISSING=$((MISSING + 1))
         fi
     done
-
     echo "------------------------------------------------------------"
     if [ "$MISSING" -eq 0 ]; then
         echo "Status: System is ready to build books."
@@ -55,25 +280,45 @@ check_status() {
 # --- Argument Parsing ---
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        -v|--version) check_status ;;
-        -c|--config) CONFIG_FILE="$2"; shift ;;
-        -o|--output) OUTPUT_FILE="$2"; shift ;;
-        epub|pdf|all) FORMAT="$1" ;;
-        *.md) MANUSCRIPT="$1" ;;
-        *) echo "Unknown parameter: $1"; exit 1 ;;
+        --init)
+            shift
+            init_project "$1"
+            exit 0
+            ;;
+        -v|--version)
+            check_status
+            ;;
+        -c|--config)
+            CONFIG_FILE="$2"
+            shift
+            ;;
+        -o|--output)
+            OUTPUT_FILE="$2"
+            shift
+            ;;
+        epub|pdf|all)
+            FORMAT="$1"
+            ;;
+        *.md)
+            MANUSCRIPT="$1"
+            ;;
+        *)
+            echo "Unknown parameter: $1"
+            exit 1
+            ;;
     esac
     shift
 done
 
 if [ -z "$MANUSCRIPT" ] || [ ! -f "$MANUSCRIPT" ]; then
-    echo "Usage: buildbook manuscript.md [epub|pdf|all] [-c buildbook.conf] [-o output_path] [-v]"
+    echo "Usage: buildbook manuscript.md [epub|pdf|all] [-c config] [-o output] [--init [dir]] [-v]"
     exit 1
 fi
 
 # --- Load Configuration ---
 [ -f "$CONFIG_FILE" ] && source "$CONFIG_FILE"
 
-# Deriving defaults if config variables are missing
+# Defaults if config is missing
 PAPER_W=${PAPER_W:-"6in"}
 PAPER_H=${PAPER_H:-"9in"}
 FONT_SIZE=${FONT_SIZE:-"11pt"}
@@ -114,8 +359,6 @@ validate_gutter() {
         else
             echo "Proceeding with your custom config ($MARGIN_LEFT)"
         fi
-    else
-        echo "  Status:           Gutter is sufficient."
     fi
     echo "------------------------------------------------------------"
     echo ""
@@ -132,12 +375,25 @@ build_latex_header() {
 \fancyhead[LO]{${HEADER_ODD_LEFT:-}}
 \fancyhead[RO]{${HEADER_ODD_RIGHT:-}}
 \renewcommand{\headrulewidth}{${HEADER_RULE_WIDTH:-0.4pt}}
+
 \fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
-\newenvironment{copyright}{\clearpage\thispagestyle{empty}\vspace*{\fill}\begin{center}}{\end{center}\vspace*{\fill}\clearpage}
-\newenvironment{dedication}{\clearpage\thispagestyle{empty}\vspace*{0.3\textheight}\begin{center}\itshape}{\end{center}\clearpage}
+
+\newenvironment{copyright}{
+  \clearpage\thispagestyle{empty}\vspace*{\fill}\begin{center}
+}{
+  \end{center}\vspace*{\fill}\clearpage
+}
+
+\newenvironment{dedication}{
+  \clearpage\thispagestyle{empty}\vspace*{0.3\textheight}\begin{center}\itshape
+}{
+  \end{center}\clearpage
+}
 LATEXEOF
+
     if [ "$PART_BREAK" = "left" ]; then
-        echo "\let\originalpart\part\renewcommand{\part}[1]{\cleardoublepage\ifodd\value{page}\hbox{}\thispagestyle{empty}\newpage\fi\originalpart{#1}}"
+        echo "\let\originalpart\part"
+        echo "\renewcommand{\part}[1]{\cleardoublepage\ifodd\value{page}\hbox{}\thispagestyle{empty}\newpage\fi\originalpart{#1}}"
     fi
 }
 

@@ -12,6 +12,7 @@ It completely eliminates the need for complex Python parsing scripts, relying in
 - **Precise TOC Control:** Drop your Table of Contents exactly where you want it (e.g., after the copyright page).
 - **Advanced Print Layout:** Granular control over trim sizes, margins, headers, footers, and page breaks (e.g., forcing Parts to start on left pages and Chapters on right pages).
 - **Automated Gutter Validation:** Built-in protection to ensure your margins meet publisher requirements based on your book's thickness.
+- **Project Scaffolding:** Use the --init flag to quickly generate the necessary configuration files for a new book.
 
 ## Prerequisites & Installation
 BuildBook relies on [Pandoc](https://pandoc.org/) (the universal document converter) and a [LaTeX engine](https://www.latex-project.org/) (specifically XeLaTeX) to generate PDFs. 
@@ -28,12 +29,12 @@ sudo apt install wget pandoc texlive-xetex texlive-latex-extra texlive-fonts-ext
 ```
 *(Note: `fonts-linuxlibertine` is recommended if you use the default `Linux Libertine O` font.)*
 
-### 2. Install BuildBook 
+### 2. Install (and Upgrade) BuildBook 
 To install BuildBook to your `~/.local/bin` automatically, run:
 ```bash
 wget -qO- https://raw.githubusercontent.com/ToddE/buildbook/main/install.sh | bash
 ```
-
+**Upgrading:** To upgrade to the latest version at any time, simply run the aoove command again. It will overwrite the existing buildbook executable with the most recent version from the repository.
 
 ### 3. Verify the Installation
 To verify that the installation was successful and the command is correctly in your system's search path, type the command without any arguments:
