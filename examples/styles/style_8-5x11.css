@@ -1,0 +1,22 @@
+/* BuildBook - Letter/Magazine Stylesheet (8.5x11) */
+
+body {
+  font-family: "Linux Libertine O", serif;
+  line-height: 1.7; /* Higher leading for wider lines */
+  margin: 12%;
+}
+
+/* Wide canvas spacing */
+p { margin-bottom: 1.2em; text-indent: 0; }
+
+h1 { font-size: 2.5em; text-align: left; margin-top: 3em; border-bottom: 3px solid #000; padding-bottom: 10px; }
+h2 { font-size: 1.8em; margin-top: 2em; text-transform: uppercase; color: #555; }
+
+blockquote { margin: 2.5em 0; padding: 1.5em; background: #f9f9f9; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; font-style: italic; }
+
+table { width: 100%; border-top: 2px solid #000; border-bottom: 2px solid #000; margin: 2.5em 0; }
+th { text-align: left; padding: 0.8em; border-bottom: 1px solid #000; }
+td { padding: 0.8em; border-bottom: 1px solid #eee; }
+
+.copyright { margin-top: 15%; font-size: 0.9em; }
+.dedication { text-align: center; margin-top: 20%; font-size: 1.3em; font-style: italic; }

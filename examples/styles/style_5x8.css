@@ -1,0 +1,21 @@
+/* BuildBook - Pocket/Compact Stylesheet (5x8) */
+body {
+  font-family: "Linux Libertine O", Georgia, serif;
+  line-height: 1.4;
+  margin: 5%;
+}
+
+h1 {
+  font-size: 1.6em;
+  text-align: center;
+  margin-top: 2em;
+}
+
+p {
+  margin: 0;
+  text-indent: 1.5em; /* Traditional novel indentation */
+}
+
+p:first-of-type, h1 + p, h2 + p {
+  text-indent: 0; /* No indent for first paragraph of a section */
+}

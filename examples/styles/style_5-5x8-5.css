@@ -1,0 +1,28 @@
+/* BuildBook - Pocket/Compact Stylesheet (5x8) */
+
+body {
+  font-family: "Linux Libertine O", Georgia, serif;
+  line-height: 1.4;
+  margin: 5%;
+  color: #1a1a1a;
+}
+
+/* Headings - Scaled down for 5x8 */
+h1 { font-size: 1.6em; text-align: center; margin-top: 2.5em; page-break-before: always; }
+h2 { font-size: 1.3em; text-align: center; margin-top: 2em; page-break-before: always; }
+h3 { font-size: 1.1em; font-weight: bold; margin-top: 1.5em; }
+
+/* Novel-style Indentation */
+p { margin: 0; text-indent: 1.5em; }
+p:first-of-type, h1 + p, h2 + p, h3 + p, hr + p { text-indent: 0; }
+
+/* Frontmatter */
+.copyright { margin-top: 25%; font-size: 0.8em; text-align: center; page-break-before: always; }
+.dedication { text-align: center; margin-top: 30%; font-style: italic; page-break-before: always; page-break-after: always; }
+
+/* Standard Elements */
+blockquote { text-align: center; font-style: italic; margin: 1.5em 1em; }
+table { border-collapse: collapse; width: 100%; font-size: 0.8em; margin: 1em 0; border-top: 1px solid #000; border-bottom: 1px solid #000; }
+th, td { padding: 0.3em; text-align: left; border-bottom: 1px solid #eee; }
+img { max-width: 100%; height: auto; display: block; margin: 1em auto; }
+code { font-family: monospace; font-size: 0.9em; background: #f4f4f4; padding: 2px; }
