@@ -6,7 +6,7 @@
 set -e
 
 # Configuration
-REPO_RAW_URL="https://raw.githubusercontent.com/yourusername/buildbook/main"
+REPO_RAW_URL="https://raw.githubusercontent.com/ToddE/buildbook/main"
 BIN_DIR="$HOME/.local/bin"
 INSTALL_PATH="$BIN_DIR/buildbook"
 
