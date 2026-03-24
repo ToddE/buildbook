@@ -5,7 +5,7 @@
 # Description: A lightweight, pure-Bash toolchain for publishing professional PDFs and EPUBs directly from Markdown.
 # Author:      Todd Emerson (todd@toddemerson.com)
 # Created:     2026-03-24
-# Version:     1.3.3
+# Version:     1.3.4
 # License:     BSL 1.1
 #
 # Usage:       buildbook <manuscript.md> [format] [options]
@@ -13,7 +13,7 @@
 # ============================================================
 set -e
 
-VERSION="1.3.3"
+VERSION="1.3.4"
 
 # --- Default Variables ---
 FORMAT="all"
@@ -198,14 +198,14 @@ hr {
 }
 
 /* Custom environments */
-.copyright {
+.copyrightpage {
   margin-top: 30%;
   font-size: 0.85em;
   text-align: center;
   page-break-before: always;
 }
 
-.dedication {
+.dedicationpage {
   text-align: center;
   margin-top: 30%;
   font-style: italic;
@@ -223,11 +223,11 @@ read -r -d '' INIT_MD << 'EOF' || true
 
 Welcome to your new book. 
 
-::: {.dedication}
+::: {.dedicationpage}
 To the dreamers and the builders.
 :::
 
-::: {.copyright}
+::: {.copyrightpage}
 Copyright © 2026 by Jane Doe.
 All rights reserved.
 :::
@@ -418,13 +418,13 @@ build_latex_header() {
 
 \fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
 
-\newenvironment{copyright}{
+\newenvironment{copyrightpage}{
   \clearpage\thispagestyle{empty}\vspace*{\fill}\begin{center}
 }{
   \end{center}\vspace*{\fill}\clearpage
 }
 
-\newenvironment{dedication}{
+\newenvironment{dedicationpage}{
   \clearpage\thispagestyle{empty}\vspace*{0.3\textheight}\begin{center}\itshape
 }{
   \end{center}\clearpage

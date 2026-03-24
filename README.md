@@ -128,7 +128,7 @@ Use fenced divs (`:::`) to create specialized pages. BuildBook will map these to
 
 #### Copyright Page (Vertically centered, no page numbers)
 ```markdown
-:::: {.copyright}
+:::: {.copyrightpage}
 Copyright © 2026 by Jane Doe. All rights reserved.
 Published by Example Books.
 :::
@@ -136,7 +136,7 @@ Published by Example Books.
 
 #### Dedication Page (Italicized, offset from the top, no page numbers)
 ```markdown
-:::: {.dedication}
+:::: {.dedicationpage}
 For my family, who supported me through this journey.
 :::
 ```

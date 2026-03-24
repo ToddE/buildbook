@@ -1,12 +1,12 @@
 # Title Page Info 
 
-::: {.copyright}
+::: {.copyrightpage}
 Copyright © 2026 by A. Developer. All rights reserved.
 
 Published by Open Source Press
 :::
 
-::: {.dedication}
+::: {.dedicationpage}
 For the open source community.
 :::
 

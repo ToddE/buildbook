@@ -2,7 +2,7 @@
 This directory contains a complete, minimal working example to help you get started with BuildBook.
 
 ## Files in this Example
-- `sample-book.md`: The manuscript. Notice the use of the `{.copyright}` and `{.dedication}` blocks, as well as the explicit `\tableofcontents` placement.
+- `sample-book.md`: The manuscript. Notice the use of the `{.copyrightpage}` and `{.dedicationpage}` blocks, as well as the explicit `\tableofcontents` placement.
 - `metadata.yaml`: The book's core metadata.
 - `buildbook.conf`: The layout configuration for print and digital.
 - `style.css`: The stylesheet for the EPUB output.
