@@ -90,6 +90,8 @@ buildbook <manuscript.md> [format] [options]
 - `-c, --config <file>`: Specify a custom configuration file (Defaults to buildbook.conf).
 - `-o, --output <name>`: Specify a custom output filename (Defaults to out/<manuscript-basename>.<format>).
 - `-v, --version`: Run version check and dependency scan.
+- `--init [dir]`: Initialize a new project in the specified directory (or current directory if omitted).
+- `-h, --help`: Display comprehensive help documentation.
 
 ### Examples
 ```bash

@@ -5,7 +5,7 @@
 # Description: A lightweight, pure-Bash toolchain for publishing professional PDFs and EPUBs directly from Markdown.
 # Author:      Todd Emerson (todd@toddemerson.com)
 # Created:     2026-03-24
-# Version:     1.2.1
+# Version:     1.2.2
 # License:     BSL 1.1
 #
 # Usage:       buildbook <manuscript.md> [format] [options]
@@ -13,7 +13,7 @@
 # ============================================================
 set -e
 
-VERSION="1.2.1"
+VERSION="1.2.2"
 
 # --- Internal Templates (sourced from /assets/init) ---
 # These are used when running 'buildbook --init'
@@ -229,6 +229,62 @@ All rights reserved.
 This is where your story starts.
 EOF
 
+# --- Helper Functions ---
+show_help() {
+    cat << EOF
+NAME
+    buildbook - A lightweight toolchain for professional publishing.
+
+SYNOPSIS
+    buildbook <manuscript.md> [format] [options]
+    buildbook --init [directory]
+    buildbook -v | --version
+    buildbook -h | --help
+
+DESCRIPTION
+    BuildBook wraps Pandoc and XeLaTeX into a maintainable Bash-based workflow.
+    It converts Markdown manuscripts into professional print-ready PDFs and 
+    flowable digital EPUBs using unified styling.
+
+ARGUMENTS
+    manuscript.md
+        The source Markdown file containing your book content.
+
+    format
+        pdf     Builds a print-ready PDF.
+        epub    Builds a digital EPUB.
+        all     Builds both formats (Default).
+
+OPTIONS
+    -c, --config <file>
+        Specify a custom configuration file (Defaults to buildbook.conf).
+
+    -o, --output <name>
+        Specify a custom output path (Defaults to out/<basename>.<format>).
+
+    --init [dir]
+        Scaffold a new project in [dir] (or current directory if omitted).
+
+    -v, --version
+        Display version number and perform a system dependency check.
+
+    -h, --help
+        Display this comprehensive help documentation.
+
+EXAMPLES
+    buildbook my-book.md
+    buildbook manuscript.md pdf -c print-layout.conf
+    buildbook --init my-new-novel
+
+AUTHOR
+    Todd Emerson (todd@toddemerson.com)
+
+LICENSE
+    Business Source License 1.1 (BSL)
+EOF
+    exit 0
+}
+
 # --- Initialization Function ---
 init_project() {
     local target_dir="${1:-.}"
@@ -280,6 +336,9 @@ check_status() {
 # --- Argument Parsing ---
 while [[ "$#" -gt 0 ]]; do
     case $1 in
+        -h|--help)
+            show_help
+            ;;
         --init)
             shift
             init_project "$1"
@@ -303,7 +362,7 @@ while [[ "$#" -gt 0 ]]; do
             MANUSCRIPT="$1"
             ;;
         *)
-            echo "Unknown parameter: $1"
+            echo "Unknown parameter: $1. Use --help for usage information."
             exit 1
             ;;
     esac
@@ -311,7 +370,8 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [ -z "$MANUSCRIPT" ] || [ ! -f "$MANUSCRIPT" ]; then
-    echo "Usage: buildbook manuscript.md [epub|pdf|all] [-c config] [-o output] [--init [dir]] [-v]"
+    echo "Usage: buildbook manuscript.md [epub|pdf|all] [options]"
+    echo "Try 'buildbook --help' for more information."
     exit 1
 fi
 
