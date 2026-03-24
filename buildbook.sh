@@ -5,7 +5,7 @@
 # Description: A lightweight, pure-Bash toolchain for publishing professional PDFs and EPUBs directly from Markdown.
 # Author:      Todd Emerson (todd@toddemerson.com)
 # Created:     2026-03-24
-# Version:     1.3.6
+# Version:     1.4.0
 # License:     BSL 1.1
 #
 # Usage:       buildbook <manuscript.md> [format] [options]
@@ -13,17 +13,21 @@
 # ============================================================
 set -e
 
-VERSION="1.3.6"
+VERSION="1.4.0"
 
 # --- Default Variables ---
 FORMAT="all"
 MANUSCRIPT=""
 CONFIG_FILE="buildbook.conf"
 METADATA_FILE="metadata.yaml"
+LATEX_STYLES_FILE="styles.tex"
+EPUB_STYLESHEET="style.css"
 OUTPUT_DIR="out"
 OUTPUT_FILE=""
 
 # --- Internal Templates (for --init) ---
+# These are used when running 'buildbook --init' to generate high-quality starting points.
+
 read -r -d '' INIT_METADATA << 'EOF' || true
 ---
 # For more information, review example at https://github.com/ToddE/buildbook/blob/main/examples/metadata.yaml
@@ -67,15 +71,46 @@ HEADER_ODD_RIGHT="\thepage"
 HEADER_RULE_WIDTH="0.4pt"
 
 # --- Structural Breaks ---
-PART_BREAK="right"     # Forces Parts to odd (right) pages
-CHAPTER_BREAK="right"  # Forces Chapters to odd (right) pages
+# Options: 'right' (standard), 'left', or 'any'
+PART_BREAK="right"     
+CHAPTER_BREAK="right" 
 PART_PAGE_PLAIN="true"
 CHAPTER_PAGE_PLAIN="true"
 
-# --- EPUB Specifics ---
+# --- Style Files ---
+LATEX_STYLES_FILE="styles.tex"
 EPUB_STYLESHEET="style.css"
+
+# --- EPUB Specifics ---
 EPUB_TOC_DEPTH="2"
 EPUB_SPLIT_LEVEL="2"
+EOF
+
+read -r -d '' INIT_TEX << 'EOF' || true
+% ==========================================
+% styles.tex - Custom PDF Environments
+% ==========================================
+% Any ::: {.style-name} used in Markdown requires 
+% a \newenvironment definition here to work in PDF.
+
+% Horizontal Centering (::: {.center-quote})
+\newenvironment{center-quote}{
+  \begin{list}{}{
+    \leftmargin=2em
+    \rightmargin=2em
+  }
+  \item\relax\centering\itshape
+}{
+  \end{list}
+}
+
+% Small Caps Note (::: {.note})
+\newenvironment{note}{
+  \begin{quote}
+  \small\itshape\centering
+}{
+  \end{quote}
+}
 EOF
 
 read -r -d '' INIT_CSS << 'EOF' || true
@@ -98,7 +133,7 @@ li { margin-bottom: 0.4em; }
 hr { border: none; border-top: 1px solid #ccc; margin: 2em 0; }
 .copyrightpage { margin-top: 30%; font-size: 0.85em; text-align: center; page-break-before: always; }
 .dedicationpage { text-align: center; margin-top: 30%; font-style: italic; page-break-before: always; page-break-after: always; }
-.center-quote { text-align: center; }
+.center-quote { text-align: center; font-style: italic; }
 EOF
 
 read -r -d '' INIT_MD << 'EOF' || true
@@ -165,6 +200,11 @@ OPTIONS
     -h, --help
         Display this comprehensive help documentation.
 
+EXAMPLES
+    buildbook my-book.md
+    buildbook manuscript.md pdf -c print-layout.conf
+    buildbook --init my-new-novel
+
 AUTHOR
     Todd Emerson (todd@toddemerson.com)
 
@@ -184,6 +224,7 @@ init_project() {
     echo "Initializing new BuildBook project..."
     [ ! -f "metadata.yaml" ] && echo "$INIT_METADATA" > metadata.yaml && echo "  [+] metadata.yaml"
     [ ! -f "buildbook.conf" ] && echo "$INIT_CONF" > buildbook.conf && echo "  [+] buildbook.conf"
+    [ ! -f "styles.tex" ] && echo "$INIT_TEX" > styles.tex && echo "  [+] styles.tex"
     [ ! -f "style.css" ] && echo "$INIT_CSS" > style.css && echo "  [+] style.css"
     [ ! -f "manuscript.md" ] && echo "$INIT_MD" > manuscript.md && echo "  [+] manuscript.md"
     echo "------------------------------------------------------------"
@@ -256,16 +297,20 @@ validate_gutter() {
     local chars=$(wc -m < "$MANUSCRIPT")
     local imgs=$(grep -c "!\[" "$MANUSCRIPT")
     local est=$(( (chars / 1600) + (imgs / 2) + 4 ))
+    
     local req="0.25"
-    [ "$est" -ge 25 ] && [ "$est" -le 75 ] && req="0.375"
-    [ "$est" -ge 76 ] && [ "$est" -le 150 ] && req="0.5"
-    [ "$est" -ge 151 ] && [ "$est" -le 300 ] && req="0.625"
-    [ "$est" -ge 301 ] && [ "$est" -le 500 ] && req="0.75"
-    [ "$est" -ge 501 ] && [ "$est" -le 700 ] && req="0.875"
-    [ "$est" -ge 701 ] && req="1.0"
+    if [ "$est" -ge 25 ]  && [ "$est" -le 75 ];  then req="0.375"; fi
+    if [ "$est" -ge 76 ]  && [ "$est" -le 150 ]; then req="0.5"; fi
+    if [ "$est" -ge 151 ] && [ "$est" -le 300 ]; then req="0.625"; fi
+    if [ "$est" -ge 301 ] && [ "$est" -le 500 ]; then req="0.75"; fi
+    if [ "$est" -ge 501 ] && [ "$est" -le 700 ]; then req="0.875"; fi
+    if [ "$est" -ge 701 ]; then req="1.0"; fi
+    
     local current_val=$(echo "$MARGIN_LEFT" | sed 's/in//g')
+    
     echo "------------------------------------------------------------"
     echo "PRE-FLIGHT ESTIMATE: ~$est pages | Gutter: ${current_val}in | Req: ${req}in"
+    
     if (( $(echo "$current_val != $req" | bc -l) )); then
         if (( $(echo "$current_val < $req" | bc -l) )); then
             echo "WARNING: Your inside margin (gutter) is thinner than recommended."
@@ -273,7 +318,10 @@ validate_gutter() {
             echo "NOTE: Your inside margin is larger than the KDP minimum."
         fi
         read -p "Would you like to adopt the KDP recommendation of ${req}in? (y/N): " choice
-        [[ "$choice" =~ ^[Yy]$ ]] && MARGIN_LEFT="${req}in" && echo "Proceeding with MARGIN_LEFT=$MARGIN_LEFT"
+        if [[ "$choice" =~ ^[Yy]$ ]]; then
+            MARGIN_LEFT="${req}in"
+            echo "Proceeding with MARGIN_LEFT=$MARGIN_LEFT"
+        fi
     fi
     echo "------------------------------------------------------------"
 }
@@ -320,7 +368,11 @@ LATEXEOF
 }
 
 % Structural Break Logic
+\usepackage{etoolbox}
 LATEXEOF
+
+    # Include external styles if they exist
+    [ -f "$LATEX_STYLES_FILE" ] && cat "$LATEX_STYLES_FILE"
 
     # Handle Chapter Breaks
     if [ "$CHAPTER_BREAK" = "right" ]; then
@@ -341,7 +393,12 @@ build_epub() {
     local OUT="${OUTPUT_FILE:-${OUTPUT_DIR}/${BASENAME}.epub}"
     mkdir -p "$(dirname "$OUT")"
     echo "Building EPUB -> $OUT"
-    pandoc "$MANUSCRIPT" --metadata-file="$METADATA_FILE" --css="${EPUB_STYLESHEET:-style.css}" --toc --toc-depth="${EPUB_TOC_DEPTH:-2}" -o "$OUT"
+    pandoc "$MANUSCRIPT" \
+        --metadata-file="$METADATA_FILE" \
+        --css="${EPUB_STYLESHEET:-style.css}" \
+        --toc \
+        --toc-depth="${EPUB_TOC_DEPTH:-2}" \
+        -o "$OUT"
 }
 
 build_pdf() {
@@ -370,10 +427,13 @@ build_pdf() {
 }
 
 # --- Execution ---
+
 [ "$FORMAT" != "epub" ] && validate_gutter
+
 case "$FORMAT" in 
     epub) build_epub ;; 
     pdf)  build_pdf ;; 
     all)  build_epub; build_pdf ;; 
 esac
+
 echo "Build complete."
