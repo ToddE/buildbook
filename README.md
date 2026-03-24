@@ -19,50 +19,65 @@ BuildBook relies on [Pandoc](https://pandoc.org/) (the universal document conver
 
 If you are on Windows, this script is designed to run in a Linux environment. The easiest way to do this is to install [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) and open an Ubuntu terminal.
 
-### 1. Install Dependencies
+### 1. Install System Dependencies
 On Ubuntu/Debian-based systems, install the dependencies for the script.
 
 ```sh
 sudo apt update
-sudo apt install pandoc texlive-xetex texlive-latex-extra texlive-fonts-extra fonts-linuxlibertine
+sudo apt install wget pandoc texlive-xetex texlive-latex-extra texlive-fonts-extra bc fonts-linuxlibertine
 ```
 *(Note: `fonts-linuxlibertine` is recommended if you use the default `Linux Libertine O` font.)*
 
-### 2. Download BuildBook
-Clone this repository to your computer and navigate to the new folder:
+### 2. Install BuildBook 
+To install BuildBook to your `~/.local/bin` automatically, run:
 ```bash
-git clone [https://github.com/yourusername/buildbook.git](https://github.com/yourusername/buildbook.git)
-cd buildbook
+wget -qO- https://raw.githubusercontent.com/ToddE/buildbook/main/install.sh | bash
 ```
 
-### 3. Make the Script Executable
-By default, Linux prevents downloaded text files from running as programs. You need to grant the script "executable" permissions:
+
+### 3. Verify the Installation
+To verify that the installation was successful and the command is correctly in your system's search path, type the command without any arguments:
 
 ```bash
-chmod +x buildbook.sh
+buildbook -v
+```
+If the installation is correct, you will see your version number followed by a "System Dependency Check" showing `[OK]` for all required tools.
+
+***Note:** If buildbook isn't recognized (e.g., "command not found") after installation, ensure export `PATH="$HOME/.local/bin:$PATH"` is in your `~/.bashrc` or the equivalent file where your path is set.
+
+## Recommended Project Organization
+
+You have two main ways to organize your work:
+
+### Option A: Standalone Project (Professional)
+
+Keep your book in its own dedicated folder (or even its own Git repository). This keeps your manuscript separate from the BuildBook source code.
+
+```
+my-awesome-book/
+├── manuscript.md
+├── buildbook.conf  (Customized for this book)
+├── metadata.yaml   (Title/Author for this book)
+├── style.css       (Optional custom styles for EPUB and PDF)
+└── images/
 ```
 
-## Quick Start: The `examples` Directory
-
-The best way to understand BuildBook is to run the example. We have included a complete, minimal working example in the `examples/` folder.
-
-From the root directory of this project, run the following command:
-
+From inside `my-awesome-book/`, run:
 ```bash
-./buildbook.sh examples/sample-book.md all -c examples/buildbook.conf
+buildbook manuscript.md all -c buildbook.conf
 ```
 
-*(**Note:** The `./` tells Linux to execute the script located in your current directory).*
+### Option B: Subdirectory Method (Simple)
 
-Once it finishes, look inside the newly created `out/` directory. You will see a professionally formatted `sample-book.pdf` and a flowable `sample-book.epub`!
-
+If you prefer keeping everything in one place, create a folder inside the BuildBook directory:
+`buildbook/projects/my-awesome-book/`
 
 
 ## Usage
-When you are ready to build your own books, the basic syntax is:
+Once installed, the basic syntax is:
 
 ```bash
-./buildbook.sh <manuscript.md> [format] [options]
+buildbook <manuscript.md> [format] [options] 
 ```
 
 ### Formats
@@ -73,17 +88,22 @@ When you are ready to build your own books, the basic syntax is:
 ### Options
 - `-c, --config <file>`: Specify a custom configuration file (Defaults to buildbook.conf).
 - `-o, --output <name>`: Specify a custom output filename (Defaults to out/<manuscript-basename>.<format>).
+- `-v, --version`: Run version check and dependency scan.
 
 ### Examples
 ```bash
-# Build both PDF and EPUB using default configurations
-./buildbook.sh my-book.md
 
-# Build only a PDF with a specific configuration file
-./buildbook.sh my-book.md pdf -c print-layout.conf
+# Build both PDF and EPUB
+buildbook my-book.md
+
+# Build only a PDF with a specific configuration
+buildbook my-book.md pdf -c print-layout.conf
+
+# Build both PDF and EPUB using default configurations
+buildbook my-book.md
 
 # Build an EPUB with a custom output name
-./buildbook.sh my-book.md epub -o final-draft.epub
+buildbook my-book.md epub -o final-draft.epub
 ```
 
 ## Configuration Architecture
@@ -127,20 +147,55 @@ By default, the PDF engine automatically maps your top-level headings (`#`) to t
 
 If you want the body of the page to say "Chapter 1: Hello World", but you want the header at the top of the page to only say "Hello World", you can override the header text using a raw LaTeX command immediately after your heading:
 
+##### For Parts or Top-Level Sections (`#`)
+Use `\markboth{New Title}{}` to update the left-hand header:
+
 ```markdown
-## Chapter 1: Hello World
-`​`​`{=latex}
-\markright{Hello World}
-`​`​`
+# Part One: The Journey Begins
+```{=latex}
+\markboth{The Journey Begins}{}
 ```
 
-**(Use `\markright{}` for `##` headings, and `\markboth{}{}` for `#` headings).*
+##### For Chapters or Sub-Sections (`##`)
+Use `\markright{New Title}` to update the right-hand header:
+```markdown
+## Chapter 1: Hello World
+```{=latex}
+\markright{Hello World}
+```
+
+
+
+## A Note on Book Covers (KDP, IngramSpark, etc.)
+
+This toolchain is designed to generate a professional Interior Manuscript. For professional print-on-demand services like Amazon KDP:
+
+1. **Interior (This Tool):** Use BuildBook to generate your finalized interior PDF.
+
+2. **Spine Calculation:** Note your final page count.
+
+3. **Check the Gutter:** As your book increases in page count, publishers require a larger inside margin (the gutter) to ensure text isn't lost in the binding.
+
+   - **Automated Estimation:** When you run `buildbook.sh`, the script provides a "Pre-Flight Estimate" of your page count based on character density and image frequency.  It cross-references this against industry standards (see [Amazon KDP Gutter Requirements](https://kdp.amazon.com/en_US/help/topic/G9776SBDU6CCM8KV)).
+
+   - **Verify:** Check this estimate and ensure that your `MARGIN_LEFT` in `buildbook.conf` meets your publisher's minimum requirements for that specific page count.
+
+4. **Cover Design (Separate):** Printed covers require a "full wrap" (Back + Spine + Front) designed as a single PDF. Use the KDP Cover Calculator to download a template based on your page count.
+
+5. **Digital Covers:** For EPUBs, you can simply add a cover-image: "cover.jpg" line to your metadata.yaml, and Pandoc will embed it as the digital cover.
+
 
 
 ## Contributing & License
 
 Contributions, updates, and improvements to the `buildbook` script are highly encouraged! We prefer that folks contribute their changes back to this repository so everyone can benefit from the improvements.
 
-Regarding usage: personal, educational, and small-scale use is freely permitted. However, commercial use by large companies is gated and requires asking for permission first. 
+**License: Business Source License 1.1 (BSL)**
 
-If you are a large company wanting to use this toolchain for commercial publishing pipelines, please reach out.
+* **Permitted:** Personal, educational, and small-scale commercial use.
+
+* **Gated:** Commercial use by entities exceeding **10 employees** OR **$200,000 USD** in annual gross revenue requires a separate agreement.
+
+* **Automatic Conversion:** On March 24, 2030, this project automatically transitions to the **MIT License**.
+
+See the [`LICENSE`](/LICENSE) file for full legal terms.
