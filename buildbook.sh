@@ -5,7 +5,7 @@
 # Description: A lightweight, pure-Bash toolchain for publishing professional PDFs and EPUBs directly from Markdown.
 # Author:      Todd Emerson (todd@toddemerson.com)
 # Created:     2026-03-24
-# Version:     1.3.5
+# Version:     1.3.6
 # License:     BSL 1.1
 #
 # Usage:       buildbook <manuscript.md> [format] [options]
@@ -13,7 +13,7 @@
 # ============================================================
 set -e
 
-VERSION="1.3.5"
+VERSION="1.3.6"
 
 # --- Default Variables ---
 FORMAT="all"
@@ -59,6 +59,7 @@ MONO_FONT="DejaVu Sans Mono"
 PARAGRAPH_STYLE="block" 
 
 # --- Page Headers & Footers ---
+# \leftmark = Chapter | \rightmark = Section | \thepage = Number
 HEADER_EVEN_LEFT="\thepage"
 HEADER_EVEN_RIGHT="\textit{\leftmark}"
 HEADER_ODD_LEFT="\textit{\rightmark}"
@@ -66,8 +67,8 @@ HEADER_ODD_RIGHT="\thepage"
 HEADER_RULE_WIDTH="0.4pt"
 
 # --- Structural Breaks ---
-PART_BREAK="left"     
-CHAPTER_BREAK="right" 
+PART_BREAK="right"     # Forces Parts to odd (right) pages
+CHAPTER_BREAK="right"  # Forces Chapters to odd (right) pages
 PART_PAGE_PLAIN="true"
 CHAPTER_PAGE_PLAIN="true"
 
@@ -115,6 +116,7 @@ All rights reserved.
 
 ```{=latex}
 \tableofcontents
+\clearpage
 ```
 
 # Chapter 1: The Beginning
@@ -245,6 +247,8 @@ MAIN_FONT=${MAIN_FONT:-"Linux Libertine O"}
 MONO_FONT=${MONO_FONT:-"DejaVu Sans Mono"}
 PARAGRAPH_STYLE=${PARAGRAPH_STYLE:-"block"}
 MARGIN_LEFT=${MARGIN_LEFT:-"0.75in"}
+CHAPTER_BREAK=${CHAPTER_BREAK:-"right"}
+PART_BREAK=${PART_BREAK:-"right"}
 
 # --- Logic Modules ---
 
@@ -304,21 +308,32 @@ LATEXEOF
     cat << LATEXEOF
 % Frontmatter Environments
 \newenvironment{copyrightpage}{
-  \clearpage\thispagestyle{empty}\vspace*{\fill}\begin{center}
+  \cleardoublepage\thispagestyle{empty}\vspace*{\fill}\begin{center}
 }{
-  \end{center}\vspace*{\fill}\clearpage
+  \end{center}\vspace*{\fill}\cleardoublepage
 }
 
 \newenvironment{dedicationpage}{
-  \clearpage\thispagestyle{empty}\vspace*{0.3\textheight}\begin{center}\itshape
+  \cleardoublepage\thispagestyle{empty}\vspace*{0.3\textheight}\begin{center}\itshape
 }{
-  \end{center}\clearpage
+  \end{center}\cleardoublepage
 }
+
+% Structural Break Logic
 LATEXEOF
 
-    if [ "$PART_BREAK" = "left" ]; then
-        echo "\let\originalpart\part"
-        echo "\renewcommand{\part}[1]{\cleardoublepage\ifodd\value{page}\hbox{}\thispagestyle{empty}\newpage\fi\originalpart{#1}}"
+    # Handle Chapter Breaks
+    if [ "$CHAPTER_BREAK" = "right" ]; then
+        echo "\patchcmd{\chapter}{\clearpage}{\cleardoublepage}{}{}"
+    elif [ "$CHAPTER_BREAK" = "left" ]; then
+        echo "\patchcmd{\chapter}{\clearpage}{\clearpage\ifodd\value{page}\hbox{}\thispagestyle{empty}\clearpage\fi}{}{}"
+    fi
+
+    # Handle Part Breaks
+    if [ "$PART_BREAK" = "right" ]; then
+        echo "\patchcmd{\part}{\clearpage}{\cleardoublepage}{}{}"
+    elif [ "$PART_BREAK" = "left" ]; then
+        echo "\patchcmd{\part}{\clearpage}{\clearpage\ifodd\value{page}\hbox{}\thispagestyle{empty}\clearpage\fi}{}{}"
     fi
 }
 
@@ -339,7 +354,10 @@ build_pdf() {
     pandoc "$MANUSCRIPT" \
         --metadata-file="$METADATA_FILE" \
         --pdf-engine=xelatex \
+        --top-level-division=chapter \
         -V documentclass=book \
+        -V classoption=twoside \
+        -V classoption=openright \
         -V "papersize=${PAPER_W},${PAPER_H}" \
         -V "geometry=top=${MARGIN_TOP:-0.75in},bottom=${MARGIN_BOT:-0.75in},left=${MARGIN_LEFT},right=${MARGIN_RIGHT:-0.5in}" \
         -V "fontsize=$FONT_SIZE" \

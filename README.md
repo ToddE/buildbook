@@ -93,6 +93,7 @@ buildbook <manuscript.md> [format] [options]
 - `--init [dir]`: Initialize a new project in the specified directory (or current directory if omitted).
 - `-h, --help`: Display comprehensive help documentation.
 
+
 ### Examples
 ```bash
 # Build both PDF and EPUB
@@ -105,14 +106,66 @@ buildbook my-book.md pdf -c print-layout.conf
 buildbook my-book.md epub -o final-draft.epub
 ```
 
+
 ## Configuration Architecture
 BuildBook separates your book's data from its visual layout:
 - `metadata.yaml`: Contains standard book data (Title, Author, Publisher). Pandoc reads this directly.
 - `buildbook.conf`: A Bash-sourced configuration file that dictates trim sizes, fonts, headers/footers, and structural breaks.
 - `style.css`: Controls the visual layout for the EPUB format and shares unified class naming conventions with the PDF LaTeX environments.
 
+
+## Configuration
+BuildBook uses a Bash-based configuration file. Key variables include:
+
+### PDF Layout
+- `PAPER_W` / `PAPER_H`: Physical page dimensions (e.g., 6in, 9in).
+
+- `MARGIN_LEFT`: The inside margin or "gutter."
+
+- `MARGIN_RIGHT` / `MARGIN_TOP` / `MARGIN_BOT`: Outer margins.
+
+PDF Layout
+
+PAPER_W / PAPER_H: Physical page dimensions (e.g., 6in, 9in).
+
+MARGIN_LEFT: The inside margin or "gutter."
+
+MARGIN_RIGHT / MARGIN_TOP / MARGIN_BOT: Outer margins.
+
+### Structural Breaks
+Control how new sections begin in the PDF:
+- `CHAPTER_BREAK`: Set to `right` (standard), `left`, or `any`.
+
+- `PART_BREAK`: Set to `right` (standard), `left`, or `any`.
+
+### Typography
+
+- `MAIN_FONT`: The primary serif font (e.g., `Linux Libertine O`).
+
+- `MONO_FONT`: Used for code blocks (e.g., `DejaVu Sans Mono`).
+
+- `LINE_SPACING`: Decimal value for leading (e.g., `1.15`).
+
+- `PARAGRAPH_STYLE`: Set to `block` (spaced) or `indent` (first-line indent).
+
 ## Markdown Formatting Guide
-BuildBook supports custom Markdown environments to handle frontmatter gracefully in both PDF and EPUB formats.
+Use these fenced divs to create standard book pages that are styled correctly in both PDF and EPUB.
+
+### Copyright Page (Vertically centered, no page numbers)
+```markdown
+:::: {.copyrightpage}
+Copyright © 2026 by Jane Doe. All rights reserved.
+Published by Example Books.
+:::
+```
+
+### Dedication Page (Italicized, offset from the top, no page numbers)
+```markdown
+:::: {.dedicationpage}
+For my family, who supported me through this journey.
+:::
+```
+
 
 ### Table of Contents
 To place your PDF Table of Contents precisely where you want it (instead of being forced to the very beginning), add this raw LaTeX block to your Markdown file:
@@ -123,30 +176,12 @@ To place your PDF Table of Contents precisely where you want it (instead of bein
 `​`​`
 ```
 
-### Custom Page Environments
-Use fenced divs (`:::`) to create specialized pages. BuildBook will map these to CSS classes for EPUB and custom LaTeX environments for PDF.
-
-#### Copyright Page (Vertically centered, no page numbers)
-```markdown
-:::: {.copyrightpage}
-Copyright © 2026 by Jane Doe. All rights reserved.
-Published by Example Books.
-:::
-```
-
-#### Dedication Page (Italicized, offset from the top, no page numbers)
-```markdown
-:::: {.dedicationpage}
-For my family, who supported me through this journey.
-:::
-```
-
-#### Advanced Page Headers
+### Advanced Page Headers
 By default, the PDF engine automatically maps your top-level headings (`#`) to the `\leftmark` header variable and your second-level headings (`##`) to the `\rightmark` header variable.
 
 If you want the body of the page to say "Chapter 1: Hello World", but you want the header at the top of the page to only say "Hello World", you can override the header text using a raw LaTeX command immediately after your heading:
 
-##### For Parts or Top-Level Sections (`#`)
+#### For Parts or Top-Level Sections (`#`)
 Use `\markboth{New Title}{}` to update the left-hand header:
 
 ````markdown
@@ -157,13 +192,13 @@ Use `\markboth{New Title}{}` to update the left-hand header:
 ````
 
 
-##### For Chapters or Sub-Sections (`##`)
+#### For Chapters or Sub-Sections (`##`)
 Use `\markright{New Title}` to update the right-hand header:
 
 ````markdown
-## Chapter 1: Hello World
+## Chapter 1: The Long Title
 ```{=latex}
-\markright{Hello World}
+\markright{Short Title}
 ```
 ````
 
