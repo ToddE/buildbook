@@ -5,7 +5,7 @@
 # Description: A lightweight, pure-Bash toolchain for publishing professional PDFs and EPUBs directly from Markdown.
 # Author:      Todd Emerson (todd@toddemerson.com)
 # Created:     2026-03-24
-# Version:     1.2.2
+# Version:     1.3.3
 # License:     BSL 1.1
 #
 # Usage:       buildbook <manuscript.md> [format] [options]
@@ -13,10 +13,18 @@
 # ============================================================
 set -e
 
-VERSION="1.2.2"
+VERSION="1.3.3"
 
-# --- Internal Templates (sourced from /assets/init) ---
-# These are used when running 'buildbook --init'
+# --- Default Variables ---
+FORMAT="all"
+MANUSCRIPT=""
+CONFIG_FILE="buildbook.conf"
+METADATA_FILE="metadata.yaml"
+OUTPUT_DIR="out"
+OUTPUT_FILE=""
+
+# --- Internal Templates (for --init) ---
+# These are used when running 'buildbook --init' to generate high-quality starting points.
 
 read -r -d '' INIT_METADATA << 'EOF' || true
 ---
@@ -204,6 +212,10 @@ hr {
   page-break-before: always;
   page-break-after: always;
 }
+
+.center-quote {
+   text-align: center;
+}
 EOF
 
 read -r -d '' INIT_MD << 'EOF' || true
@@ -220,9 +232,9 @@ Copyright © 2026 by Jane Doe.
 All rights reserved.
 :::
 
-`​`​`{=latex}
+```{=latex}
 \tableofcontents
-`​`​`
+```
 
 # Chapter 1: The Beginning
 
@@ -230,6 +242,7 @@ This is where your story starts.
 EOF
 
 # --- Helper Functions ---
+
 show_help() {
     cat << EOF
 NAME
@@ -242,9 +255,8 @@ SYNOPSIS
     buildbook -h | --help
 
 DESCRIPTION
-    BuildBook wraps Pandoc and XeLaTeX into a maintainable Bash-based workflow.
-    It converts Markdown manuscripts into professional print-ready PDFs and 
-    flowable digital EPUBs using unified styling.
+    BuildBook converts Markdown manuscripts into professional print-ready PDFs 
+    and flowable digital EPUBs using unified styling.
 
 ARGUMENTS
     manuscript.md
@@ -285,31 +297,26 @@ EOF
     exit 0
 }
 
-# --- Initialization Function ---
 init_project() {
     local target_dir="${1:-.}"
-    
     if [ "$target_dir" != "." ]; then
         echo "Creating directory: $target_dir"
         mkdir -p "$target_dir"
         cd "$target_dir"
     fi
-
     echo "Initializing new BuildBook project..."
     
-    # Create files only if they don't already exist
     [ ! -f "metadata.yaml" ] && echo "$INIT_METADATA" > metadata.yaml && echo "  [+] metadata.yaml"
     [ ! -f "buildbook.conf" ] && echo "$INIT_CONF" > buildbook.conf && echo "  [+] buildbook.conf"
     [ ! -f "style.css" ] && echo "$INIT_CSS" > style.css && echo "  [+] style.css"
     [ ! -f "manuscript.md" ] && echo "$INIT_MD" > manuscript.md && echo "  [+] manuscript.md"
     
     echo "------------------------------------------------------------"
-    echo "Done! Navigate to your folder and run: buildbook manuscript.md"
+    echo "Done! Run: buildbook manuscript.md"
     echo "------------------------------------------------------------"
     exit 0
 }
 
-# --- Status & Version Check ---
 check_status() {
     echo "BuildBook Version: $VERSION"
     echo "------------------------------------------------------------"
@@ -325,46 +332,22 @@ check_status() {
         fi
     done
     echo "------------------------------------------------------------"
-    if [ "$MISSING" -eq 0 ]; then
-        echo "Status: System is ready to build books."
-    else
-        echo "Status: $MISSING dependency/dependencies missing. Please check the README."
-    fi
+    [ "$MISSING" -eq 0 ] && echo "Status: System is ready." || echo "Status: $MISSING dependency missing."
     exit 0
 }
 
 # --- Argument Parsing ---
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        -h|--help)
-            show_help
-            ;;
-        --init)
-            shift
-            init_project "$1"
-            exit 0
-            ;;
-        -v|--version)
-            check_status
-            ;;
-        -c|--config)
-            CONFIG_FILE="$2"
-            shift
-            ;;
-        -o|--output)
-            OUTPUT_FILE="$2"
-            shift
-            ;;
-        epub|pdf|all)
-            FORMAT="$1"
-            ;;
-        *.md)
-            MANUSCRIPT="$1"
-            ;;
-        *)
-            echo "Unknown parameter: $1. Use --help for usage information."
-            exit 1
-            ;;
+        -h|--help) show_help ;;
+        --init) shift; init_project "$1"; exit 0 ;;
+        -v|--version) check_status ;;
+        -c|--config) CONFIG_FILE="$2"; shift ;;
+        -o|--output) OUTPUT_FILE="$2"; shift ;;
+        epub|pdf|all) FORMAT="$1" ;;
+        *.md) MANUSCRIPT="$1" ;;
+        *) echo "Unknown parameter: $1. Use --help for usage info."; exit 1 ;;
     esac
     shift
 done
@@ -376,18 +359,19 @@ if [ -z "$MANUSCRIPT" ] || [ ! -f "$MANUSCRIPT" ]; then
 fi
 
 # --- Load Configuration ---
+
 [ -f "$CONFIG_FILE" ] && source "$CONFIG_FILE"
 
-# Defaults if config is missing
+# Apply logic defaults for derived variables
+BASENAME=$(basename "$MANUSCRIPT" .md)
 PAPER_W=${PAPER_W:-"6in"}
 PAPER_H=${PAPER_H:-"9in"}
 FONT_SIZE=${FONT_SIZE:-"11pt"}
 MAIN_FONT=${MAIN_FONT:-"Linux Libertine O"}
 MARGIN_LEFT=${MARGIN_LEFT:-"0.75in"}
-OUTPUT_DIR="out"
-BASENAME=$(basename "$MANUSCRIPT" .md)
 
-# --- Page Count & Gutter Validator ---
+# --- Logic Modules ---
+
 validate_gutter() {
     local chars=$(wc -m < "$MANUSCRIPT")
     local imgs=$(grep -c "!\[" "$MANUSCRIPT")
@@ -400,31 +384,27 @@ validate_gutter() {
     if [ "$est" -ge 301 ] && [ "$est" -le 500 ]; then req="0.75"; fi
     if [ "$est" -ge 501 ] && [ "$est" -le 700 ]; then req="0.875"; fi
     if [ "$est" -ge 701 ]; then req="1.0"; fi
-
-    local current_val=$(echo "$MARGIN_LEFT" | sed 's/in//g')
-
-    echo "------------------------------------------------------------"
-    echo "PRE-FLIGHT ESTIMATE:"
-    echo "  Estimated Pages:  ~$est pages"
-    echo "  Current Gutter:   ${current_val}in (MARGIN_LEFT)"
-    echo "  KDP Recommended:  ${req}in"
     
-    if (( $(echo "$current_val < $req" | bc -l) )); then
-        echo ""
-        echo "WARNING: Your inside margin (gutter) is thinner than recommended."
-        read -p "Would you like to use the recommended ${req}in margin for this build? (y/N): " choice
+    local current_val=$(echo "$MARGIN_LEFT" | sed 's/in//g')
+    
+    echo "------------------------------------------------------------"
+    echo "PRE-FLIGHT ESTIMATE: ~$est pages | Gutter: ${current_val}in | Req: ${req}in"
+    
+    if (( $(echo "$current_val != $req" | bc -l) )); then
+        if (( $(echo "$current_val < $req" | bc -l) )); then
+            echo "WARNING: Your inside margin (gutter) is thinner than recommended."
+        else
+            echo "NOTE: Your inside margin is larger than the KDP minimum."
+        fi
+        read -p "Would you like to adopt the KDP recommendation of ${req}in? (y/N): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
             MARGIN_LEFT="${req}in"
             echo "Proceeding with MARGIN_LEFT=$MARGIN_LEFT"
-        else
-            echo "Proceeding with your custom config ($MARGIN_LEFT)"
         fi
     fi
     echo "------------------------------------------------------------"
-    echo ""
 }
 
-# --- LaTeX Header Generation ---
 build_latex_header() {
     cat << LATEXEOF
 \usepackage{fancyhdr}
@@ -457,13 +437,16 @@ LATEXEOF
     fi
 }
 
-# --- Build Targets ---
 build_epub() {
     local OUT="${OUTPUT_FILE:-${OUTPUT_DIR}/${BASENAME}.epub}"
     mkdir -p "$(dirname "$OUT")"
     echo "Building EPUB -> $OUT"
-    pandoc "$MANUSCRIPT" --metadata-file="$METADATA_FILE" --css="${EPUB_STYLESHEET:-style.css}" \
-        --toc --toc-depth="${EPUB_TOC_DEPTH:-2}" -o "$OUT"
+    pandoc "$MANUSCRIPT" \
+        --metadata-file="$METADATA_FILE" \
+        --css="${EPUB_STYLESHEET:-style.css}" \
+        --toc \
+        --toc-depth="${EPUB_TOC_DEPTH:-2}" \
+        -o "$OUT"
 }
 
 build_pdf() {
@@ -473,20 +456,28 @@ build_pdf() {
     HEADER_FILE=$(mktemp /tmp/book-header-XXXXX.tex)
     build_latex_header > "$HEADER_FILE"
     
-    pandoc "$MANUSCRIPT" --metadata-file="$METADATA_FILE" --pdf-engine=xelatex \
-        -V documentclass=book -V "papersize=${PAPER_W},${PAPER_H}" \
+    pandoc "$MANUSCRIPT" \
+        --metadata-file="$METADATA_FILE" \
+        --pdf-engine=xelatex \
+        -V documentclass=book \
+        -V "papersize=${PAPER_W},${PAPER_H}" \
         -V "geometry=top=${MARGIN_TOP:-0.75in},bottom=${MARGIN_BOT:-0.75in},left=${MARGIN_LEFT},right=${MARGIN_RIGHT:-0.5in}" \
-        -V "fontsize=$FONT_SIZE" -V "mainfont=$MAIN_FONT" -H "$HEADER_FILE" -o "$OUT"
+        -V "fontsize=$FONT_SIZE" \
+        -V "mainfont=$MAIN_FONT" \
+        -H "$HEADER_FILE" \
+        -o "$OUT"
+    
     rm -f "$HEADER_FILE"
 }
 
 # --- Execution ---
+
 [ "$FORMAT" != "epub" ] && validate_gutter
 
-case "$FORMAT" in
-    epub) build_epub ;;
-    pdf)  build_pdf ;;
-    all)  build_epub; build_pdf ;;
+case "$FORMAT" in 
+    epub) build_epub ;; 
+    pdf)  build_pdf ;; 
+    all)  build_epub; build_pdf ;; 
 esac
 
 echo "Build complete."
