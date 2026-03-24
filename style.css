@@ -1,0 +1,135 @@
+/* BuildBook - Unified Stylesheet */
+
+/* Body text */
+body {
+  font-family: Georgia, serif;
+  line-height: 1.6;
+  margin: 1em;
+}
+
+/* Headings */
+h1 {
+  font-size: 1.8em;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 3em;
+  margin-bottom: 1em;
+  page-break-before: always;
+}
+
+h2 {
+  font-size: 1.4em;
+  font-weight: bold;
+  margin-top: 2em;
+  margin-bottom: 0.8em;
+  page-break-before: always;
+}
+
+h3 {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+/* Chapter epigraph quotes - centered and italic */
+blockquote {
+  text-align: center;
+  font-style: italic;
+  margin: 2em 1.5em;
+  padding: 0;
+  border: none;
+}
+
+blockquote p {
+  margin: 0.3em 0;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.85em;
+  margin: 1em 0;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 0.4em 0.6em;
+  text-align: left;
+}
+
+th {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+/* Images/diagrams */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5em auto;
+}
+
+/* Image captions */
+figcaption {
+  text-align: center;
+  font-size: 0.85em;
+  font-style: italic;
+  color: #666;
+  margin-top: 0.5em;
+}
+
+/* Code blocks */
+code {
+  font-family: "Courier New", monospace;
+  font-size: 0.9em;
+  background-color: #f5f5f5;
+  padding: 0.1em 0.3em;
+}
+
+pre {
+  background-color: #f5f5f5;
+  padding: 1em;
+  overflow-x: auto;
+  font-size: 0.85em;
+  line-height: 1.4;
+}
+
+/* Lists */
+ul, ol {
+  margin: 0.8em 0;
+  padding-left: 2em;
+}
+
+li {
+  margin-bottom: 0.4em;
+}
+
+/* Horizontal rules (section breaks) */
+hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 2em 0;
+}
+
+/* Custom environments */
+.copyright {
+  margin-top: 30%;
+  font-size: 0.85em;
+  text-align: center;
+  page-break-before: always;
+}
+
+.dedication {
+  text-align: center;
+  margin-top: 30%;
+  font-style: italic;
+  page-break-before: always;
+  page-break-after: always;
+}
+
+.center-quote {
+   text-align: center;
+}

@@ -1,0 +1,20 @@
+---
+# ============================================================
+# Book Metadata 
+# ============================================================
+# Core book identity variables. Pandoc reads this directly.
+# Layout and formatting settings should be kept in buildbook.conf.
+# ============================================================
+
+title: "Building Books for Publishing"
+subtitle: "A Practical Guide to the buildbook script"
+author: "Bill D. Books"
+date: "2026"
+lang: en-US
+description: |
+  A practical guide for those who want to use the buildbook
+  script to setup/configure their own books.
+rights: "Copyright © 2026 by Bill D. Books. All rights reserved."
+publisher: "BuildBook Press"
+edition: "First edition"
+---

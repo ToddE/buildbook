@@ -1,0 +1,22 @@
+/* Core text */
+body {
+  font-family: Georgia, serif;
+  line-height: 1.6;
+  margin: 1em;
+}
+
+/* Custom environments */
+.copyright {
+  margin-top: 30%;
+  font-size: 0.85em;
+  text-align: center;
+  page-break-before: always;
+}
+
+.dedication {
+  text-align: center;
+  margin-top: 30%;
+  font-style: italic;
+  page-break-before: always;
+  page-break-after: always;
+}
