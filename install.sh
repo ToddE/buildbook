@@ -17,7 +17,7 @@ echo "------------------------------------------------------------"
 
 # 1. Dependency Check
 echo "Step 1: Checking system dependencies..."
-DEPS=("pandoc" "xelatex" "bc" "wget")
+DEPS=("pandoc" "bc" "wget" "texlive-xetex" "texlive-latex-extra" "texlive-fonts-extra" "fonts-linuxlibertine")
 MISSING_DEPS=()
 
 for dep in "${DEPS[@]}"; do
