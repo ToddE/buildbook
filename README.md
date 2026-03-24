@@ -11,18 +11,18 @@ It completely eliminates the need for complex Python parsing scripts, relying in
 - **Unified Styling:** Use Markdown ::: divs to style frontmatter (dedications, copyright pages) for both EPUB and print PDF simultaneously..
 - **Precise TOC Control:** Drop your Table of Contents exactly where you want it (e.g., after the copyright page).
 - **Advanced Print Layout:** Granular control over trim sizes, margins, headers, footers, and page breaks (e.g., forcing Parts to start on left pages and Chapters on right pages).
+- **Automated Gutter Validation:** Built-in protection to ensure your margins meet publisher requirements based on your book's thickness.
 
 ## Prerequisites & Installation
 BuildBook relies on [Pandoc](https://pandoc.org/) (the universal document converter) and a [LaTeX engine](https://www.latex-project.org/) (specifically XeLaTeX) to generate PDFs. 
 
 ### For Windows Users (WSL)
-
 If you are on Windows, this script is designed to run in a Linux environment. The easiest way to do this is to install [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) and open an Ubuntu terminal.
 
 ### 1. Install System Dependencies
 On Ubuntu/Debian-based systems, install the dependencies for the script.
 
-```sh
+```bash
 sudo apt update
 sudo apt install wget pandoc texlive-xetex texlive-latex-extra texlive-fonts-extra bc fonts-linuxlibertine
 ```
@@ -43,7 +43,7 @@ buildbook -v
 ```
 If the installation is correct, you will see your version number followed by a "System Dependency Check" showing `[OK]` for all required tools.
 
-***Note:** If buildbook isn't recognized (e.g., "command not found") after installation, ensure export `PATH="$HOME/.local/bin:$PATH"` is in your `~/.bashrc` or the equivalent file where your path is set.
+***Note:** If buildbook isn't recognized (e.g., "command not found") after installation, ensure export `PATH="$HOME/.local/bin:$PATH"` is in your `~/.bashrc` or the equivalent file where your path is set.*
 
 ## Recommended Project Organization
 
@@ -92,15 +92,11 @@ buildbook <manuscript.md> [format] [options]
 
 ### Examples
 ```bash
-
 # Build both PDF and EPUB
 buildbook my-book.md
 
 # Build only a PDF with a specific configuration
 buildbook my-book.md pdf -c print-layout.conf
-
-# Build both PDF and EPUB using default configurations
-buildbook my-book.md
 
 # Build an EPUB with a custom output name
 buildbook my-book.md epub -o final-draft.epub
@@ -118,17 +114,17 @@ BuildBook supports custom Markdown environments to handle frontmatter gracefully
 ### Table of Contents
 To place your PDF Table of Contents precisely where you want it (instead of being forced to the very beginning), add this raw LaTeX block to your Markdown file:
 
-```
+```markdown
 `​`​`{=latex}
 \tableofcontents
 `​`​`
 ```
 
 ### Custom Page Environments
-Use fenced divs (`:::`) to create specialized pages. BuildBook will map these to CSS classes for EPUB and custom LaTeX environments for PDF.C
+Use fenced divs (`:::`) to create specialized pages. BuildBook will map these to CSS classes for EPUB and custom LaTeX environments for PDF.
 
 #### Copyright Page (Vertically centered, no page numbers)
-```
+```markdown
 :::: {.copyright}
 Copyright © 2026 by Jane Doe. All rights reserved.
 Published by Example Books.
@@ -136,7 +132,7 @@ Published by Example Books.
 ```
 
 #### Dedication Page (Italicized, offset from the top, no page numbers)
-```
+```markdown
 :::: {.dedication}
 For my family, who supported me through this journey.
 :::
@@ -150,19 +146,23 @@ If you want the body of the page to say "Chapter 1: Hello World", but you want t
 ##### For Parts or Top-Level Sections (`#`)
 Use `\markboth{New Title}{}` to update the left-hand header:
 
-```markdown
+````markdown
 # Part One: The Journey Begins
 ```{=latex}
 \markboth{The Journey Begins}{}
 ```
+````
+
 
 ##### For Chapters or Sub-Sections (`##`)
 Use `\markright{New Title}` to update the right-hand header:
-```markdown
+
+````markdown
 ## Chapter 1: Hello World
 ```{=latex}
 \markright{Hello World}
 ```
+````
 
 
 
@@ -176,15 +176,21 @@ This toolchain is designed to generate a professional Interior Manuscript. For p
 
 3. **Check the Gutter:** As your book increases in page count, publishers require a larger inside margin (the gutter) to ensure text isn't lost in the binding.
 
-   - **Automated Estimation:** When you run `buildbook.sh`, the script provides a "Pre-Flight Estimate" of your page count based on character density and image frequency.  It cross-references this against industry standards (see [Amazon KDP Gutter Requirements](https://kdp.amazon.com/en_US/help/topic/G9776SBDU6CCM8KV)).
+   - **Automated Estimation:** When you run `buildbook`, the script provides a "Pre-Flight Estimate" of your page count based on character density and image frequency.  It cross-references this against industry standards (see [Amazon KDP Gutter Requirements](https://kdp.amazon.com/en_US/help/topic/G9776SBDU6CCM8KV)).
 
    - **Verify:** Check this estimate and ensure that your `MARGIN_LEFT` in `buildbook.conf` meets your publisher's minimum requirements for that specific page count.
 
-4. **Cover Design (Separate):** Printed covers require a "full wrap" (Back + Spine + Front) designed as a single PDF. Use the KDP Cover Calculator to download a template based on your page count.
+4. **Cover Design (Separate):** Printed covers require a "full wrap" (Back + Spine + Front) designed as a single PDF. Use the [KDP Cover Calculator](https://kdp.amazon.com/cover-calculator) to download a template based on your page count.
 
-5. **Digital Covers:** For EPUBs, you can simply add a cover-image: "cover.jpg" line to your metadata.yaml, and Pandoc will embed it as the digital cover.
+5. **Digital Covers:** For EPUBs, you can simply add a `cover-image: "cover.jpg"` line to your `metadata.yaml`, and Pandoc will embed it as the digital cover.
 
+## Uninstall
+We get it — sometimes things aren't what they seem. If you installed `buildbook` and decided you want to uninstall it, you can run the `uninstall.sh` script directly from the repository:
 
+```bash
+wget -qO- https://raw.githubusercontent.com/ToddE/buildbook/main/uninstall.sh | bash
+```
+***Note:** This will not remove the installed dependencies or change your exported path settings.*
 
 ## Contributing & License
 
