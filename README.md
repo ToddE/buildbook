@@ -135,3 +135,12 @@ If you want the body of the page to say "Chapter 1: Hello World", but you want t
 ```
 
 **(Use `\markright{}` for `##` headings, and `\markboth{}{}` for `#` headings).*
+
+
+## Contributing & License
+
+Contributions, updates, and improvements to the `buildbook` script are highly encouraged! We prefer that folks contribute their changes back to this repository so everyone can benefit from the improvements.
+
+Regarding usage: personal, educational, and small-scale use is freely permitted. However, commercial use by large companies is gated and requires asking for permission first. 
+
+If you are a large company wanting to use this toolchain for commercial publishing pipelines, please reach out.

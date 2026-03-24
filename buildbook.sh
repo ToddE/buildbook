@@ -2,6 +2,15 @@
 # ============================================================
 # buildbook.sh - Pure Bash Book Builder
 # ============================================================
+# Description: A lightweight, pure-Bash toolchain for publishing professional PDFs and EPUBs directly from Markdown.
+# Author:      Todd Emerson (todd@toddemerson.com)
+# Created:     2026-03-24
+# Version:     1.0.0
+# License:     BSL 1.1
+#
+# Usage:       ./buildbook.sh <manuscript.md> [format] [options]
+# Dependencies: Requires pandoc texlive-xetex texlive-latex-extra texlive-fonts-extra (fonts-linuxlibertine)
+#
 set -e
 
 # --- Default Variables ---
