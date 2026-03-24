@@ -22,5 +22,5 @@ table { width: 100%; border-collapse: collapse; margin: 2em 0; }
 th { background: #444; color: #fff; padding: 0.6em; text-align: left; }
 td { border: 1px solid #ddd; padding: 0.6em; }
 
-.copyright { margin-top: 20%; font-size: 0.85em; }
-.dedication { margin-top: 25%; font-style: italic; border-left: 3px solid #ccc; padding-left: 1em; }
+.copyrightpage { margin-top: 20%; font-size: 0.85em; }
+.dedicationpage { margin-top: 25%; font-style: italic; border-left: 3px solid #ccc; padding-left: 1em; }

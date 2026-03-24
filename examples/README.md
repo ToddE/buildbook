@@ -140,14 +140,14 @@ body {
 }
 
 /* Custom environments */
-.copyright {
+.copyrightpage {
   margin-top: 30%;
   font-size: 0.85em;
   text-align: center;
   page-break-before: always;
 }
 
-.dedication {
+.dedicationpage {
   text-align: center;
   margin-top: 30%;
   font-style: italic;

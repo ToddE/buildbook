@@ -18,5 +18,5 @@ table { width: 100%; border-top: 2px solid #000; border-bottom: 2px solid #000; 
 th { text-align: left; padding: 0.8em; border-bottom: 1px solid #000; }
 td { padding: 0.8em; border-bottom: 1px solid #eee; }
 
-.copyright { margin-top: 15%; font-size: 0.9em; }
-.dedication { text-align: center; margin-top: 20%; font-size: 1.3em; font-style: italic; }
+.copyrightpage { margin-top: 15%; font-size: 0.9em; }
+.dedicationpage { text-align: center; margin-top: 20%; font-size: 1.3em; font-style: italic; }
