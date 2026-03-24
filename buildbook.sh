@@ -5,7 +5,7 @@
 # Description: A lightweight, pure-Bash toolchain for publishing professional PDFs and EPUBs directly from Markdown.
 # Author:      Todd Emerson (todd@toddemerson.com)
 # Created:     2026-03-24
-# Version:     1.3.4
+# Version:     1.3.5
 # License:     BSL 1.1
 #
 # Usage:       buildbook <manuscript.md> [format] [options]
@@ -13,7 +13,7 @@
 # ============================================================
 set -e
 
-VERSION="1.3.4"
+VERSION="1.3.5"
 
 # --- Default Variables ---
 FORMAT="all"
@@ -24,8 +24,6 @@ OUTPUT_DIR="out"
 OUTPUT_FILE=""
 
 # --- Internal Templates (for --init) ---
-# These are used when running 'buildbook --init' to generate high-quality starting points.
-
 read -r -d '' INIT_METADATA << 'EOF' || true
 ---
 # For more information, review example at https://github.com/ToddE/buildbook/blob/main/examples/metadata.yaml
@@ -61,7 +59,6 @@ MONO_FONT="DejaVu Sans Mono"
 PARAGRAPH_STYLE="block" 
 
 # --- Page Headers & Footers ---
-# \leftmark = Chapter | \rightmark = Section | \thepage = Number
 HEADER_EVEN_LEFT="\thepage"
 HEADER_EVEN_RIGHT="\textit{\leftmark}"
 HEADER_ODD_LEFT="\textit{\rightmark}"
@@ -69,8 +66,8 @@ HEADER_ODD_RIGHT="\thepage"
 HEADER_RULE_WIDTH="0.4pt"
 
 # --- Structural Breaks ---
-PART_BREAK="left"     # Forces Parts to even (left) pages
-CHAPTER_BREAK="right" # Forces Chapters to odd (right) pages
+PART_BREAK="left"     
+CHAPTER_BREAK="right" 
 PART_PAGE_PLAIN="true"
 CHAPTER_PAGE_PLAIN="true"
 
@@ -82,145 +79,29 @@ EOF
 
 read -r -d '' INIT_CSS << 'EOF' || true
 /* BuildBook - Unified Stylesheet */
-
-/* Body text */
-body {
-  font-family: Georgia, "Linux Libertine O", serif;
-  line-height: 1.6;
-  margin: 1em;
-}
-
-/* Headings */
-h1 {
-  font-size: 1.8em;
-  font-weight: bold;
-  text-align: center;
-  margin-top: 3em;
-  margin-bottom: 1em;
-  page-break-before: always;
-}
-
-h2 {
-  font-size: 1.4em;
-  font-weight: bold;
-  margin-top: 2em;
-  margin-bottom: 0.8em;
-  page-break-before: always;
-}
-
-h3 {
-  font-size: 1.1em;
-  font-weight: bold;
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
-}
-
-/* Chapter epigraph quotes - centered and italic */
-blockquote {
-  text-align: center;
-  font-style: italic;
-  margin: 2em 1.5em;
-  padding: 0;
-  border: none;
-}
-
-blockquote p {
-  margin: 0.3em 0;
-}
-
-/* Tables */
-table {
-  border-collapse: collapse;
-  width: 100%;
-  font-size: 0.85em;
-  margin: 1em 0;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 0.4em 0.6em;
-  text-align: left;
-}
-
-th {
-  background-color: #f0f0f0;
-  font-weight: bold;
-}
-
-/* Images/diagrams */
-img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 1.5em auto;
-}
-
-/* Image captions */
-figcaption {
-  text-align: center;
-  font-size: 0.85em;
-  font-style: italic;
-  color: #666;
-  margin-top: 0.5em;
-}
-
-/* Code blocks */
-code {
-  font-family: "Courier New", monospace;
-  font-size: 0.9em;
-  background-color: #f5f5f5;
-  padding: 0.1em 0.3em;
-}
-
-pre {
-  background-color: #f5f5f5;
-  padding: 1em;
-  overflow-x: auto;
-  font-size: 0.85em;
-  line-height: 1.4;
-}
-
-/* Lists */
-ul, ol {
-  margin: 0.8em 0;
-  padding-left: 2em;
-}
-
-li {
-  margin-bottom: 0.4em;
-}
-
-/* Horizontal rules (section breaks) */
-hr {
-  border: none;
-  border-top: 1px solid #ccc;
-  margin: 2em 0;
-}
-
-/* Custom environments */
-.copyrightpage {
-  margin-top: 30%;
-  font-size: 0.85em;
-  text-align: center;
-  page-break-before: always;
-}
-
-.dedicationpage {
-  text-align: center;
-  margin-top: 30%;
-  font-style: italic;
-  page-break-before: always;
-  page-break-after: always;
-}
-
-.center-quote {
-   text-align: center;
-}
+body { font-family: Georgia, "Linux Libertine O", serif; line-height: 1.6; margin: 1em; }
+h1 { font-size: 1.8em; font-weight: bold; text-align: center; margin-top: 3em; margin-bottom: 1em; page-break-before: always; }
+h2 { font-size: 1.4em; font-weight: bold; margin-top: 2em; margin-bottom: 0.8em; page-break-before: always; }
+h3 { font-size: 1.1em; font-weight: bold; margin-top: 1.5em; margin-bottom: 0.5em; }
+blockquote { text-align: center; font-style: italic; margin: 2em 1.5em; padding: 0; border: none; }
+blockquote p { margin: 0.3em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.85em; margin: 1em 0; }
+th, td { border: 1px solid #ccc; padding: 0.4em 0.6em; text-align: left; }
+th { background-color: #f0f0f0; font-weight: bold; }
+img { max-width: 100%; height: auto; display: block; margin: 1.5em auto; }
+figcaption { text-align: center; font-size: 0.85em; font-style: italic; color: #666; margin-top: 0.5em; }
+code { font-family: "Courier New", monospace; font-size: 0.9em; background-color: #f5f5f5; padding: 0.1em 0.3em; }
+pre { background-color: #f5f5f5; padding: 1em; overflow-x: auto; font-size: 0.85em; line-height: 1.4; }
+ul, ol { margin: 0.8em 0; padding-left: 2em; }
+li { margin-bottom: 0.4em; }
+hr { border: none; border-top: 1px solid #ccc; margin: 2em 0; }
+.copyrightpage { margin-top: 30%; font-size: 0.85em; text-align: center; page-break-before: always; }
+.dedicationpage { text-align: center; margin-top: 30%; font-style: italic; page-break-before: always; page-break-after: always; }
+.center-quote { text-align: center; }
 EOF
 
 read -r -d '' INIT_MD << 'EOF' || true
 # Introduction
-
 Welcome to your new book. 
 
 ::: {.dedicationpage}
@@ -237,7 +118,6 @@ All rights reserved.
 ```
 
 # Chapter 1: The Beginning
-
 This is where your story starts.
 EOF
 
@@ -283,11 +163,6 @@ OPTIONS
     -h, --help
         Display this comprehensive help documentation.
 
-EXAMPLES
-    buildbook my-book.md
-    buildbook manuscript.md pdf -c print-layout.conf
-    buildbook --init my-new-novel
-
 AUTHOR
     Todd Emerson (todd@toddemerson.com)
 
@@ -305,12 +180,10 @@ init_project() {
         cd "$target_dir"
     fi
     echo "Initializing new BuildBook project..."
-    
     [ ! -f "metadata.yaml" ] && echo "$INIT_METADATA" > metadata.yaml && echo "  [+] metadata.yaml"
     [ ! -f "buildbook.conf" ] && echo "$INIT_CONF" > buildbook.conf && echo "  [+] buildbook.conf"
     [ ! -f "style.css" ] && echo "$INIT_CSS" > style.css && echo "  [+] style.css"
     [ ! -f "manuscript.md" ] && echo "$INIT_MD" > manuscript.md && echo "  [+] manuscript.md"
-    
     echo "------------------------------------------------------------"
     echo "Done! Run: buildbook manuscript.md"
     echo "------------------------------------------------------------"
@@ -367,7 +240,10 @@ BASENAME=$(basename "$MANUSCRIPT" .md)
 PAPER_W=${PAPER_W:-"6in"}
 PAPER_H=${PAPER_H:-"9in"}
 FONT_SIZE=${FONT_SIZE:-"11pt"}
+LINE_SPACING=${LINE_SPACING:-"1.15"}
 MAIN_FONT=${MAIN_FONT:-"Linux Libertine O"}
+MONO_FONT=${MONO_FONT:-"DejaVu Sans Mono"}
+PARAGRAPH_STYLE=${PARAGRAPH_STYLE:-"block"}
 MARGIN_LEFT=${MARGIN_LEFT:-"0.75in"}
 
 # --- Logic Modules ---
@@ -376,20 +252,16 @@ validate_gutter() {
     local chars=$(wc -m < "$MANUSCRIPT")
     local imgs=$(grep -c "!\[" "$MANUSCRIPT")
     local est=$(( (chars / 1600) + (imgs / 2) + 4 ))
-    
     local req="0.25"
-    if [ "$est" -ge 25 ]  && [ "$est" -le 75 ];  then req="0.375"; fi
-    if [ "$est" -ge 76 ]  && [ "$est" -le 150 ]; then req="0.5"; fi
-    if [ "$est" -ge 151 ] && [ "$est" -le 300 ]; then req="0.625"; fi
-    if [ "$est" -ge 301 ] && [ "$est" -le 500 ]; then req="0.75"; fi
-    if [ "$est" -ge 501 ] && [ "$est" -le 700 ]; then req="0.875"; fi
-    if [ "$est" -ge 701 ]; then req="1.0"; fi
-    
+    [ "$est" -ge 25 ] && [ "$est" -le 75 ] && req="0.375"
+    [ "$est" -ge 76 ] && [ "$est" -le 150 ] && req="0.5"
+    [ "$est" -ge 151 ] && [ "$est" -le 300 ] && req="0.625"
+    [ "$est" -ge 301 ] && [ "$est" -le 500 ] && req="0.75"
+    [ "$est" -ge 501 ] && [ "$est" -le 700 ] && req="0.875"
+    [ "$est" -ge 701 ] && req="1.0"
     local current_val=$(echo "$MARGIN_LEFT" | sed 's/in//g')
-    
     echo "------------------------------------------------------------"
     echo "PRE-FLIGHT ESTIMATE: ~$est pages | Gutter: ${current_val}in | Req: ${req}in"
-    
     if (( $(echo "$current_val != $req" | bc -l) )); then
         if (( $(echo "$current_val < $req" | bc -l) )); then
             echo "WARNING: Your inside margin (gutter) is thinner than recommended."
@@ -397,10 +269,7 @@ validate_gutter() {
             echo "NOTE: Your inside margin is larger than the KDP minimum."
         fi
         read -p "Would you like to adopt the KDP recommendation of ${req}in? (y/N): " choice
-        if [[ "$choice" =~ ^[Yy]$ ]]; then
-            MARGIN_LEFT="${req}in"
-            echo "Proceeding with MARGIN_LEFT=$MARGIN_LEFT"
-        fi
+        [[ "$choice" =~ ^[Yy]$ ]] && MARGIN_LEFT="${req}in" && echo "Proceeding with MARGIN_LEFT=$MARGIN_LEFT"
     fi
     echo "------------------------------------------------------------"
 }
@@ -418,6 +287,22 @@ build_latex_header() {
 
 \fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
 
+% Line spacing support
+\usepackage{setspace}
+\setstretch{$LINE_SPACING}
+
+% Paragraph styling
+LATEXEOF
+
+    if [ "$PARAGRAPH_STYLE" = "block" ]; then
+        echo "\usepackage{parskip}"
+    else
+        echo "\usepackage{indentfirst}"
+        echo "\setlength{\parindent}{1.5em}"
+    fi
+
+    cat << LATEXEOF
+% Frontmatter Environments
 \newenvironment{copyrightpage}{
   \clearpage\thispagestyle{empty}\vspace*{\fill}\begin{center}
 }{
@@ -441,12 +326,7 @@ build_epub() {
     local OUT="${OUTPUT_FILE:-${OUTPUT_DIR}/${BASENAME}.epub}"
     mkdir -p "$(dirname "$OUT")"
     echo "Building EPUB -> $OUT"
-    pandoc "$MANUSCRIPT" \
-        --metadata-file="$METADATA_FILE" \
-        --css="${EPUB_STYLESHEET:-style.css}" \
-        --toc \
-        --toc-depth="${EPUB_TOC_DEPTH:-2}" \
-        -o "$OUT"
+    pandoc "$MANUSCRIPT" --metadata-file="$METADATA_FILE" --css="${EPUB_STYLESHEET:-style.css}" --toc --toc-depth="${EPUB_TOC_DEPTH:-2}" -o "$OUT"
 }
 
 build_pdf() {
@@ -464,6 +344,7 @@ build_pdf() {
         -V "geometry=top=${MARGIN_TOP:-0.75in},bottom=${MARGIN_BOT:-0.75in},left=${MARGIN_LEFT},right=${MARGIN_RIGHT:-0.5in}" \
         -V "fontsize=$FONT_SIZE" \
         -V "mainfont=$MAIN_FONT" \
+        -V "monofont=$MONO_FONT" \
         -H "$HEADER_FILE" \
         -o "$OUT"
     
@@ -471,13 +352,10 @@ build_pdf() {
 }
 
 # --- Execution ---
-
 [ "$FORMAT" != "epub" ] && validate_gutter
-
 case "$FORMAT" in 
     epub) build_epub ;; 
     pdf)  build_pdf ;; 
     all)  build_epub; build_pdf ;; 
 esac
-
 echo "Build complete."
