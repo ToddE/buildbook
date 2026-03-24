@@ -2,7 +2,7 @@
 
 /* Body text */
 body {
-  font-family: Georgia, serif;
+  font-family: Georgia, "Linux Libertine O", serif;
   line-height: 1.6;
   margin: 1em;
 }
@@ -128,8 +128,4 @@ hr {
   font-style: italic;
   page-break-before: always;
   page-break-after: always;
-}
-
-.center-quote {
-   text-align: center;
 }

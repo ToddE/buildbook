@@ -4,17 +4,56 @@
 # ============================================================
 # Core book identity variables. Pandoc reads this directly.
 # Layout and formatting settings should be kept in buildbook.conf.
+# 
+# This file provides a complete example of supported values 
+# that are highly useful for EPUB generation, Amazon KDP, 
+# and other digital/print publishers.
 # ============================================================
 
+# --- Core Identity ---
 title: "Building Books for Publishing"
 subtitle: "A Practical Guide to the buildbook script"
-author: "Bill D. Books"
+
+# Authors can be a single string or a list for multiple co-authors
+author: 
+  - "Bill D. Books"
+  - "Jane Doe"
+
+# Publication year or exact date (e.g., YYYY-MM-DD)
 date: "2026"
-lang: en-US
-description: |
-  A practical guide for those who want to use the buildbook
-  script to setup/configure their own books.
-rights: "Copyright © 2026 by Bill D. Books. All rights reserved."
+
+# Language code (Crucial for Amazon KDP validation and screen readers)
+lang: "en-US"
+
+# --- Publishing Details ---
+# The ISBN or unique identifier for the book (Required for wide distribution)
+identifier: "urn:isbn:978-0-0000000-0-0"
+
 publisher: "BuildBook Press"
 edition: "First edition"
+rights: "Copyright © 2026 by Bill D. Books. All rights reserved."
+
+# --- EPUB & Digital Store Metadata ---
+# Path to your cover image (Pandoc will automatically embed this as the EPUB cover)
+# cover-image: "images/cover.jpg"
+
+# The book's blurb or synopsis. Used by e-readers for the book description.
+description: |
+  A practical guide for those who want to use the buildbook
+  script to setup/configure their own books. This comprehensive
+  guide covers everything from Markdown basics to advanced
+  PDF layout and EPUB generation.
+
+# Keywords and subjects for SEO, Amazon categories, and e-reader tagging
+keywords:
+  - publishing
+  - markdown
+  - open-source
+  - book design
+  - typography
+subject: "Computers & Technology"
+
+# --- Document Structure Overrides ---
+# Custom title for the Table of Contents (Default is usually "Table of Contents")
+toc-title: "What's Inside"
 ---
